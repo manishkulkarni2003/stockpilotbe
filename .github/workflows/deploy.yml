@@ -1,0 +1,55 @@
+name: íº€ Deploy to VM via SSH
+
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+
+
+jobs:
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+
+    steps:
+
+      - name: í³¥ Checkout code
+
+        uses: actions/checkout@v3
+
+
+      - name: í´ Setup SSH key
+
+        run: |
+
+          mkdir -p ~/.ssh
+
+          echo "${{ secrets.SSH_KEY }}" > ~/.ssh/id_rsa
+
+          chmod 600 ~/.ssh/id_rsa
+
+          ssh-keyscan -H ${{ secrets.VM_IP }} >> ~/.ssh/known_hosts
+
+
+      - name: íº€ Deploy to VM
+
+        run: |
+
+          ssh ${{ secrets.VM_USER }}@${{ secrets.VM_IP }} << 'EOF'
+
+            cd ~/stockpilot
+
+            git pull origin main
+
+            docker compose down
+
+            docker compose up --build -d
+
+          EOF
+
